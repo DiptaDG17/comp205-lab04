@@ -6,6 +6,10 @@
 //  - fetchFromNetwork throws ApiException(404) for a 404 response (use MockClient)
 //  - loadPosts saves exactly the posts it received
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:lab04_campus_feed/data/post_cache.dart';
+import 'package:lab04_campus_feed/models/post.dart';
 import 'package:lab04_campus_feed/data/post_repository.dart';
 
 void main() {
@@ -16,4 +20,31 @@ void main() {
   });
 
   // TODO(6): write at least 2 tests of your own below.
+
+  test('Post.fromJson rejects an id with the wrong type', () {
+    expect(
+      () => Post.fromJson({
+        'id': '1',
+        'userId': 1,
+        'title': 'Campus update',
+        'body': 'Welcome',
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('fetchFromNetwork throws ApiException for HTTP 404', () async {
+    final client = MockClient((request) async => http.Response('Not found', 404));
+    final repository = PostRepository(client: client, cache: MemoryPostCache());
+
+    try {
+      await expectLater(
+        repository.fetchFromNetwork(),
+        throwsA(isA<ApiException>().having((e) => e.statusCode, 'statusCode', 404)),
+      );
+    } finally {
+      client.close();
+    }
+  });
 }
+
