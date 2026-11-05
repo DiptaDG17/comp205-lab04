@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 import '../models/post.dart';
@@ -29,18 +31,32 @@ class PostRepository {
 
   /// Part 2: GET postsUri with client.get(postsUri).timeout(const Duration(seconds: 10))
   /// (TimeoutException and .timeout come from 'dart:async').
-  /// Status 200 -> decode the body (jsonDecode, from 'dart:convert') into a list of Post.
-  /// Any other status -> throw ApiException(statusCode).
+  /// Status 200 → decode the body (jsonDecode, from 'dart:convert') into a list of Post.
+  /// Any other status → throw ApiException(statusCode).
   Future<List<Post>> fetchFromNetwork() async {
-    // TODO(2)
-    throw UnimplementedError('fetchFromNetwork');
+    final response = await client.get(postsUri).timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      final List<dynamic> body = jsonDecode(response.body);
+      return body.map((json) => Post.fromJson(json)).toList();
+    }
+    throw ApiException(response.statusCode);
   }
 
   /// Part 3: network first. On success, save to the cache and return
   /// PostsResult(posts, fromCache: false). On ANY failure, return the cached posts
   /// with fromCache: true - or rethrow the error if the cache is empty.
   Future<PostsResult> loadPosts() async {
-    // TODO(3)
-    throw UnimplementedError('loadPosts');
+    try {
+      final posts = await fetchFromNetwork();
+      await cache.save(posts);
+      return PostsResult(posts, fromCache: false);
+    } catch (_) {
+      final cached = await cache.load();
+      if (cached.isNotEmpty) {
+        return PostsResult(cached, fromCache: true);
+      }
+      rethrow;
+    }
   }
 }
+

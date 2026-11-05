@@ -15,11 +15,19 @@ class Post {
   factory Post.fromJson(Map<String, dynamic> json) {
     // TODO(1.1): read the four fields. Tip: a map pattern (Week 2) checks shape and
     // types at once:  if (json case {'id': int id, ...}) { ... }
-    throw UnimplementedError('Post.fromJson');
+    if (json case {'id': int id, 'userId': int userId, 'title': String title, 'body': String body}) {
+      return Post(id: id, userId: userId, title: title, body: body);
+    }
+    throw FormatException('Failed to parse Post from JSON');
   }
 
   Map<String, dynamic> toJson() {
     // TODO(1.2): the opposite of fromJson (same keys).
-    throw UnimplementedError('toJson');
+    return {
+      'id': id,
+      'userId': userId,
+      'title': title,
+      'body': body,
+    };
   }
 }

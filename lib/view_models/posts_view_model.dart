@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 
 import '../data/post_repository.dart';
@@ -19,5 +20,22 @@ class PostsViewModel extends ChangeNotifier {
   /// offline (= result.fromCache). On an error set
   ///   error = 'Could not load posts. Check your connection.'
   /// Always end with loading = false and notifyListeners().
-  Future<void> load() async {}
+  Future<void> load() async {
+    loading = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final result = await _repository.loadPosts();
+      posts = result.posts;
+      offline = result.fromCache;
+    } catch (_) {
+      error = 'Could not load posts. Check your connection.';
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
+  }
 }
+
+

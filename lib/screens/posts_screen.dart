@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +20,43 @@ class PostsScreen extends StatelessWidget {
       //    'Offline - showing saved posts', then an Expanded list of ListTiles
       //    (title, and the body as subtitle with maxLines: 2)
       //  - bonus: RefreshIndicator for pull-to-refresh
-      body: Center(child: Text('${vm.posts.length} posts - TODO')),
+      body: vm.loading && vm.posts.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : vm.error != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(vm.error!),
+                      FilledButton(
+                        onPressed: vm.load,
+                        child: const Text('Try again'),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: [
+                    if (vm.offline)
+                      const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('Offline - showing saved posts'),
+                      ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: vm.posts.length,
+                        itemBuilder: (context, index) {
+                          final post = vm.posts[index];
+                          return ListTile(
+                            title: Text(post.title),
+                            subtitle: Text(post.body, maxLines: 2),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
     );
   }
 }
+
